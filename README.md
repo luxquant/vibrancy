@@ -35,8 +35,8 @@ pnpm add vibrancy
 import { signal, computed, effect, batch } from 'vibrancy';
 
 // Create reactive signals
-const [count, setCount] = signal(0);
-const [multiplier, setMultiplier] = signal(2);
+const count = signal(0);
+const multiplier = signal(2);
 
 // Create computed values that auto-update
 const doubled = computed(() => count() * 2);
@@ -48,12 +48,12 @@ effect(() => {
 });
 
 // Update signals
-setCount(5); // Logs: Count: 5, Result: 10
+count.set(5); // Logs: Count: 5, Result: 10
 
 // Batch updates for efficiency
 batch(() => {
-  setCount(10);
-  setMultiplier(3);
+  count.set(10);
+  multiplier.set(3);
 }); // Logs once: Count: 10, Result: 30
 ```
 
@@ -64,7 +64,24 @@ batch(() => {
 Signals are the basic reactive primitive. They hold a value and notify dependents when it changes.
 
 ```typescript
-const [value, setValue] = signal(initialValue);
+const value = signal(initialValue);
+
+// Read the value
+console.log(value()); // current value
+
+// Update the value
+value.set(newValue);
+
+// Update with a function
+value.update(prev => prev + 1);
+
+// Subscribe to changes
+const unsubscribe = value.subscribe(newValue => {
+  console.log('Value changed:', newValue);
+});
+
+// Peek at value without tracking dependencies
+const currentValue = value.peek();
 ```
 
 ### Computed
@@ -93,14 +110,19 @@ dispose();
 Stores provide reactive objects with nested reactivity.
 
 ```typescript
-const [store, setStore] = createStore({
+const store = store({
   user: { name: 'John', age: 30 },
   settings: { theme: 'dark' }
 });
 
+// Access nested properties reactively
+effect(() => {
+  console.log(`${store.user.name} uses ${store.settings.theme} theme`);
+});
+
 // Update nested values
-setStore('user', 'name', 'Jane');
-setStore('settings', { theme: 'light' });
+store.user.name = 'Jane';
+store.settings.theme = 'light';
 ```
 
 ### Resources
@@ -108,18 +130,34 @@ setStore('settings', { theme: 'light' });
 Resources handle async data fetching with loading states.
 
 ```typescript
-const [user, { loading, error, refetch }] = createResource(
-  () => userId(), // Source signal
-  async (id) => fetchUser(id) // Fetcher function
-);
+const userId = signal(1);
+
+const user = resource(async () => {
+  const response = await fetch(`/api/user/${userId()}`);
+  return response.json();
+});
+
+// Access loading state, error, and data
+effect(() => {
+  if (user.loading()) {
+    console.log('Loading user...');
+  } else if (user.error()) {
+    console.log('Error:', user.error().message);
+  } else {
+    console.log('User:', user());
+  }
+});
+
+// Change userId triggers automatic refetch
+userId.set(2);
 ```
 
 ## API Reference
 
 ### Reactivity
-- `signal<T>(value: T)` - Create a reactive signal
-- `computed<T>(fn: () => T)` - Create a computed value
-- `effect(fn: () => void)` - Create a side effect
+- `signal<T>(value: T, options?: SignalOptions)` - Create a reactive signal
+- `computed<T>(fn: () => T, options?: ComputedOptions)` - Create a computed value
+- `effect(fn: () => void, options?: EffectOptions)` - Create a side effect
 - `batch(fn: () => void)` - Batch multiple updates
 - `untrack(fn: () => T)` - Read without tracking
 
@@ -129,17 +167,77 @@ const [user, { loading, error, refetch }] = createResource(
 - `createRoot(fn: (dispose: () => void) => T)` - Create a reactive root
 
 ### Stores
-- `createStore<T>(initial: T)` - Create a reactive store
-- `produce(fn: (draft: T) => void)` - Immutable updates
-- `reconcile(value: T)` - Reconcile store with new value
+- `store<T>(initial: T, options?: StoreOptions)` - Create a reactive store
+- `selector<T, R>(store: Store<T>, fn: (value: T) => R)` - Create a store selector
+- `transaction<T>(fn: () => T)` - Batch store updates
 
 ### Resources
-- `createResource<T>(...)` - Create an async resource
-- `suspense(fn: () => T)` - Suspend on async resources
+- `resource<T>(fetcher: () => Promise<T>, options?: ResourceOptions)` - Create an async resource
+- `asyncComputed<T>(fn: () => Promise<T>, options?: AsyncComputedOptions)` - Create async computed values
 
 ### Context
-- `createContext<T>(defaultValue: T)` - Create a context
-- `useContext<T>(context: Context<T>)` - Use a context value
+- `getOwner()` - Get current reactive owner
+- `onCleanup(fn: () => void)` - Register cleanup function
+
+### Advanced Features
+- `asyncComputed<T>(fn: () => Promise<T>)` - Async computed values
+- `resolveDiamondDependencies()` - Handle diamond dependency patterns
+- `StoreSubscriptionManager` - Manage store subscriptions
+- `StoreMiddlewareManager` - Add middleware to stores
+
+## Examples
+
+### Todo List
+
+```typescript
+import { store, computed, effect } from 'vibrancy';
+
+const todos = store({
+  items: [],
+  filter: 'all'
+});
+
+const activeTodos = computed(() => 
+  todos.items.filter(todo => !todo.completed)
+);
+
+const visibleTodos = computed(() => {
+  switch (todos.filter) {
+    case 'active': return activeTodos();
+    case 'completed': return todos.items.filter(todo => todo.completed);
+    default: return todos.items;
+  }
+});
+
+effect(() => {
+  console.log(`You have ${activeTodos().length} active todos`);
+});
+
+// Add a todo
+todos.items.push({ text: 'Learn Vibrancy', completed: false });
+```
+
+### Shopping Cart
+
+```typescript
+import { signal, computed, effect } from 'vibrancy';
+
+const items = signal([
+  { price: 10, quantity: 2 },
+  { price: 5, quantity: 3 }
+]);
+
+const total = computed(() => 
+  items().reduce((sum, item) => sum + item.price * item.quantity, 0)
+);
+
+effect(() => {
+  console.log(`Total: $${total()}`);
+});
+
+// Update items
+items.update(list => [...list, { price: 20, quantity: 1 }]);
+```
 
 ## License
 

@@ -36,7 +36,7 @@
     "outDir": "./dist",
     "declarationDir": "./dist",
     "composite": true,
-    "tsBuildInfoFile": ".node_modules/.tmp/.tsbuildinfo",
+    "tsBuildInfoFile": "./node_modules/.tmp/.tsbuildinfo",
     "declarationMap": true
   },
   "include": [

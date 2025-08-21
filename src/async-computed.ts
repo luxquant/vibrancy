@@ -231,7 +231,7 @@ export function asyncComputed<T>(
 }
 
 /**
- * Create an async resource (similar to SolidJS resource)
+ * Create an async resource
  */
 export function asyncResource<T, S = any>(
   source: () => S | undefined,

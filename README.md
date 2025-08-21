@@ -1,6 +1,6 @@
 # Vibrancy
 
-High-performance, fine-grained reactive state management system inspired by SolidJS.
+High-performance, fine-grained reactive state management system.
 
 [![npm version](https://img.shields.io/npm/v/vibrancy.svg)](https://www.npmjs.com/package/vibrancy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

@@ -2,7 +2,7 @@
 
 ## 📚 Complete Guide to Fine-Grained Reactivity
 
-Welcome to the comprehensive documentation for Vibrancy - a high-performance reactive state management system inspired by SolidJS. This guide will take you from basic concepts to advanced patterns, with real-world examples throughout.
+Welcome to the comprehensive documentation for Vibrancy - a high-performance reactive state management system. This guide will take you from basic concepts to advanced patterns, with real-world examples throughout.
 
 ## 📖 Table of Contents
 

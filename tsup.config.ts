@@ -6,7 +6,7 @@ export default defineConfig({
   dts: false, // Generate types separately with tsc
   splitting: false,
   sourcemap: true,
-  clean: true,
+  clean: false,
   treeshake: true,
   minify: false,
   target: 'node18',
